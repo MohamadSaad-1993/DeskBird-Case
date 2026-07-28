@@ -1,0 +1,555 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>deskbird — dbt Data Model</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<style>
+  :root {
+    --bg: #F4F6F8;
+    --surface: #FFFFFF;
+    --surface-2: #EAEEF1;
+    --border: #D7DCE1;
+    --text: #1B232C;
+    --text-dim: #5B6672;
+    --accent: #2E6E8E;
+    --accent-warm: #B8763A;
+    --err: #B23A32;
+    --warn: #93691A;
+    --code-bg: #EDF1F3;
+    --shadow: 0 1px 2px rgba(20, 30, 40, 0.06), 0 8px 24px rgba(20, 30, 40, 0.05);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #12171D;
+      --surface: #1A2129;
+      --surface-2: #212934;
+      --border: #2E3946;
+      --text: #E7EBEF;
+      --text-dim: #8B98A5;
+      --accent: #74B7D8;
+      --accent-warm: #E0A868;
+      --err: #E2695F;
+      --warn: #D8AE5A;
+      --code-bg: #202932;
+      --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.35);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #12171D; --surface: #1A2129; --surface-2: #212934; --border: #2E3946;
+    --text: #E7EBEF; --text-dim: #8B98A5; --accent: #74B7D8; --accent-warm: #E0A868;
+    --err: #E2695F; --warn: #D8AE5A; --code-bg: #202932;
+    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px rgba(0,0,0,0.35);
+  }
+  :root[data-theme="light"] {
+    --bg: #F4F6F8; --surface: #FFFFFF; --surface-2: #EAEEF1; --border: #D7DCE1;
+    --text: #1B232C; --text-dim: #5B6672; --accent: #2E6E8E; --accent-warm: #B8763A;
+    --err: #B23A32; --warn: #93691A; --code-bg: #EDF1F3;
+    --shadow: 0 1px 2px rgba(20,30,40,0.06), 0 8px 24px rgba(20,30,40,0.05);
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 48px 24px 96px;
+  }
+  code, .mono {
+    font-family: ui-monospace, "SF Mono", "Cascadia Code", "Consolas", monospace;
+  }
+
+  /* ---- Header ---- */
+  header.page {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-bottom: 40px;
+  }
+  .eyebrow {
+    font-size: 12.5px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 600;
+  }
+  h1 {
+    font-size: clamp(28px, 4vw, 38px);
+    line-height: 1.15;
+    margin: 0;
+    text-wrap: balance;
+    letter-spacing: -0.01em;
+  }
+  .lede {
+    max-width: 68ch;
+    color: var(--text-dim);
+    font-size: 16px;
+    margin: 0;
+  }
+  .meta-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 6px;
+  }
+  .chip {
+    font-family: ui-monospace, "SF Mono", "Cascadia Code", "Consolas", monospace;
+    font-size: 12.5px;
+    padding: 5px 10px;
+    border-radius: 6px;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+  }
+
+  /* ---- Section shell ---- */
+  section { margin-bottom: 44px; }
+  h2 {
+    font-size: 13px;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    font-weight: 700;
+    margin: 0 0 16px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* ---- Legend ---- */
+  .legend {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 12px;
+  }
+  .legend-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+    box-shadow: var(--shadow);
+  }
+  .legend-card h3 {
+    margin: 0 0 8px;
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }
+  .legend-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13.5px;
+    padding: 3px 0;
+  }
+  .swatch {
+    width: 14px; height: 14px;
+    border-radius: 3px;
+    flex: none;
+    border: 1.5px solid transparent;
+  }
+  .dot { width: 9px; height: 9px; border-radius: 50%; flex: none; }
+
+  /* ---- Diagram panel: fixed light surface regardless of page theme ---- */
+  .diagram-panel {
+    background: #FCFDFE;
+    border: 1px solid #D7DCE1;
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    padding: 20px 8px 8px;
+    overflow-x: auto;
+  }
+  .diagram-panel .pre-wrap {
+    min-width: 760px;
+  }
+
+  /* ---- Table ---- */
+  .table-scroll {
+    overflow-x: auto;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    box-shadow: var(--shadow);
+  }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: 13px;
+    min-width: 980px;
+  }
+  thead th {
+    position: sticky;
+    top: 0;
+    background: var(--surface-2);
+    text-align: left;
+    font-size: 11px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  tbody td {
+    padding: 9px 12px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover { background: var(--surface-2); }
+  .layer-tag {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 7px;
+    border-radius: 5px;
+    white-space: nowrap;
+  }
+  .badge {
+    display: inline-block;
+    font-family: ui-monospace, "SF Mono", "Cascadia Code", "Consolas", monospace;
+    font-size: 11.5px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: var(--code-bg);
+    color: var(--text);
+    white-space: nowrap;
+  }
+  .test-err { color: var(--err); }
+  .test-warn { color: var(--warn); }
+  .test-err::before, .test-warn::before {
+    content: "";
+    display: inline-block;
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    margin-right: 5px;
+  }
+  .test-err::before { background: var(--err); }
+  .test-warn::before { background: var(--warn); }
+
+  /* ---- Notes ---- */
+  .notes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 16px;
+  }
+  .note-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px 20px;
+    box-shadow: var(--shadow);
+  }
+  .note-card h3 {
+    margin: 0 0 8px;
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .note-card p {
+    margin: 0;
+    font-size: 13.5px;
+    color: var(--text-dim);
+  }
+  .note-num {
+    font-family: ui-monospace, "SF Mono", "Cascadia Code", "Consolas", monospace;
+    font-size: 12px;
+    color: var(--accent);
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 1px 6px;
+  }
+
+  footer {
+    margin-top: 56px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+    color: var(--text-dim);
+    font-size: 12.5px;
+  }
+
+  @media (max-width: 640px) {
+    .wrap { padding: 32px 16px 72px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <header class="page">
+    <div class="eyebrow">deskbird &middot; growth analytics case study</div>
+    <h1>dbt Data Model — Sources to Semantic Layer</h1>
+    <p class="lede">
+      Full lineage for the five growth metrics: 5 raw sources, staging, intermediate transforms,
+      one SCD2 snapshot, dimensional + fact marts, and a semantic-layer path alongside the
+      physical mart. Reviewed against <em>Analytics Engineering with SQL and dbt</em>
+      (Machado &amp; Russa) for materialization, testing, and naming conventions.
+    </p>
+    <div class="meta-chips">
+      <span class="chip">5 sources</span>
+      <span class="chip">5 staging</span>
+      <span class="chip">6 intermediate</span>
+      <span class="chip">1 snapshot</span>
+      <span class="chip">4 dimensions</span>
+      <span class="chip">4 facts</span>
+      <span class="chip">3 marts</span>
+      <span class="chip">1 semantic layer</span>
+    </div>
+  </header>
+
+  <section id="legend">
+    <h2>Legend</h2>
+    <div class="legend">
+      <div class="legend-card">
+        <h3>Pipeline stage (color)</h3>
+        <div class="legend-row"><span class="swatch" style="background:#DCE6EC;border-color:#9FB6C4"></span>Raw &mdash; sources / staging</div>
+        <div class="legend-row"><span class="swatch" style="background:#B7CFE0;border-color:#5C8AA6"></span>Transform &mdash; intermediate / snapshot</div>
+        <div class="legend-row"><span class="swatch" style="background:#9FC2CE;border-color:#3E7A8C"></span>Warehouse &mdash; dimensions / facts</div>
+        <div class="legend-row"><span class="swatch" style="background:#E8CBA6;border-color:#B8763A"></span>Delivery &mdash; marts / semantic / BI</div>
+      </div>
+      <div class="legend-card">
+        <h3>Model type (shape)</h3>
+        <div class="legend-row">&#9698; flag &mdash; source</div>
+        <div class="legend-row">&#9633; rectangle &mdash; staging</div>
+        <div class="legend-row">&#9711; rounded &mdash; intermediate</div>
+        <div class="legend-row">&#11039; hexagon &mdash; snapshot / semantic model</div>
+        <div class="legend-row">&#9638; double rect &mdash; dimension</div>
+        <div class="legend-row">&#9040; cylinder &mdash; fact</div>
+        <div class="legend-row">&#9678; stadium &mdash; mart</div>
+      </div>
+      <div class="legend-card">
+        <h3>Edges</h3>
+        <div class="legend-row">&#8213;&#8213;&#8594; solid &mdash; physical build dependency (<code>ref()</code>)</div>
+        <div class="legend-row">&#8231;&#8231;&#8594; dashed &mdash; logical / query-time only (MetricFlow)</div>
+      </div>
+      <div class="legend-card">
+        <h3>Test severity</h3>
+        <div class="legend-row"><span class="dot" style="background:var(--err)"></span>Error &mdash; blocks the build; structural/logical invariant</div>
+        <div class="legend-row"><span class="dot" style="background:var(--warn)"></span>Warning &mdash; logged only; known/tolerated or monitored drift</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="diagram">
+    <h2>Full Lineage</h2>
+    <div class="diagram-panel">
+      <div class="pre-wrap">
+<pre class="mermaid">
+%%{init: {'theme': 'base', 'themeVariables': { 'fontFamily': 'ui-monospace, SFMono-Regular, Consolas, monospace', 'primaryColor': '#ffffff', 'primaryBorderColor': '#9FB6C4', 'primaryTextColor': '#1B232C', 'lineColor': '#7C8792', 'fontSize': '13px', 'clusterBkg': '#FBFCFD', 'clusterBorder': '#D7DCE1' }}}%%
+graph TD
+  subgraph SRC[" SOURCES · raw, ingested via EL "]
+    direction LR
+    src_ga>"src_google_ads"]
+    src_li>"src_linkedin_ads"]
+    src_dn>"src_display_network"]
+    src_crm>"src_crm_pipeline"]
+    src_pue>"src_product_usage_events"]
+  end
+
+  subgraph STG[" STAGING · view · 1:1 with source "]
+    direction LR
+    stg_ga["stg_google_ads"]
+    stg_li["stg_linkedin_ads"]
+    stg_dn["stg_display_network"]
+    stg_crm["stg_crm_pipeline"]
+    stg_pue["stg_product_usage_events"]
+  end
+
+  subgraph SNAP[" SNAPSHOT · SCD Type 2 "]
+    snap_lead{{"snap_crm_lead_lifecycle"}}
+  end
+
+  subgraph INT[" INTERMEDIATE · ephemeral · business logic "]
+    direction LR
+    int_ads("int_paid_ads_unioned")
+    int_id("int_crm_identity_resolved")
+    int_trial("int_trial_windows")
+    int_attr("int_crm_channel_attribution")
+    int_usage("int_usage_events_in_trial")
+    int_tier("int_company_plan_tier_resolved")
+  end
+
+  subgraph DIM[" DIMENSIONS · table · sk_* surrogate keys "]
+    direction LR
+    dim_co[["dim_companies"]]
+    dim_camp[["dim_campaigns"]]
+    dim_user[["dim_users"]]
+    dim_lead[["dim_leads"]]
+  end
+
+  subgraph FCT[" FACTS · incremental "]
+    direction LR
+    fct_lead[("fct_leads")]
+    fct_usage[("fct_usage_events")]
+    fct_spend[("fct_ad_spend_daily")]
+    fct_seats[("fct_company_seats_daily")]
+  end
+
+  subgraph MART[" MARTS · table "]
+    direction LR
+    mart_growth(["mart_growth_metrics_by_channel"])
+    mart_cohort(["mart_cohort_retention"])
+    mart_dormant(["mart_dormant_scoring"])
+  end
+
+  subgraph SEM[" SEMANTIC LAYER + DASHBOARDS "]
+    direction LR
+    sem_mf{{"MetricFlow semantic models"}}
+    dash[/"BI dashboards"/]
+  end
+
+  src_ga --> stg_ga
+  src_li --> stg_li
+  src_dn --> stg_dn
+  src_crm --> stg_crm
+  src_pue --> stg_pue
+
+  stg_ga --> int_ads
+  stg_li --> int_ads
+  stg_dn --> int_ads
+  stg_crm --> int_id
+  stg_crm --> int_trial
+  stg_crm --> snap_lead
+
+  int_id --> int_attr
+  int_ads --> int_attr
+  int_trial --> int_usage
+  stg_pue --> int_usage
+  stg_pue --> int_tier
+
+  snap_lead --> dim_lead
+  int_id --> dim_lead
+  int_id --> dim_co
+  int_tier --> dim_co
+  int_ads --> dim_camp
+  stg_pue --> dim_user
+  int_id --> dim_user
+
+  int_attr --> fct_lead
+  stg_pue --> fct_usage
+  int_ads --> fct_spend
+  stg_pue --> fct_seats
+
+  dim_co --> mart_growth
+  fct_spend --> mart_growth
+  fct_lead --> mart_growth
+  fct_usage --> mart_cohort
+  dim_co --> mart_cohort
+  dim_co --> mart_dormant
+  fct_lead --> mart_dormant
+
+  dim_co -.-> sem_mf
+  fct_lead -.-> sem_mf
+  fct_spend -.-> sem_mf
+  mart_growth --> dash
+  sem_mf -.-> dash
+
+  classDef srcNode fill:#DCE6EC,stroke:#9FB6C4,color:#1B232C,stroke-width:1.5px
+  classDef stgNode fill:#DCE6EC,stroke:#9FB6C4,color:#1B232C,stroke-width:1.5px
+  classDef intNode fill:#B7CFE0,stroke:#5C8AA6,color:#1B232C,stroke-width:1.5px
+  classDef snapNode fill:#B7CFE0,stroke:#5C8AA6,color:#1B232C,stroke-width:2.5px,stroke-dasharray:4 2
+  classDef dimNode fill:#9FC2CE,stroke:#3E7A8C,color:#0F1A20,stroke-width:1.5px
+  classDef fctNode fill:#9FC2CE,stroke:#3E7A8C,color:#0F1A20,stroke-width:1.5px
+  classDef martNode fill:#E8CBA6,stroke:#B8763A,color:#3A2510,stroke-width:1.5px
+  classDef semNode fill:#E8CBA6,stroke:#B8763A,color:#3A2510,stroke-width:2.5px,stroke-dasharray:4 2
+
+  class src_ga,src_li,src_dn,src_crm,src_pue srcNode
+  class stg_ga,stg_li,stg_dn,stg_crm,stg_pue stgNode
+  class int_ads,int_id,int_trial,int_attr,int_usage,int_tier intNode
+  class snap_lead snapNode
+  class dim_co,dim_camp,dim_user,dim_lead dimNode
+  class fct_lead,fct_usage,fct_spend,fct_seats fctNode
+  class mart_growth,mart_cohort,mart_dormant martNode
+  class sem_mf,dash semNode
+</pre>
+      </div>
+    </div>
+  </section>
+
+  <section id="reference">
+    <h2>Model Reference</h2>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>Model</th>
+            <th>Layer</th>
+            <th>Materialization</th>
+            <th>Incremental strategy</th>
+            <th>Key tests</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td class="mono">src_google_ads / src_linkedin_ads / src_display_network</td><td>Source</td><td class="badge">n/a</td><td>&mdash;</td><td><span class="test-err">freshness (error_after 48h)</span></td></tr>
+          <tr><td class="mono">src_crm_pipeline</td><td>Source</td><td class="badge">n/a</td><td>&mdash;</td><td><span class="test-err">freshness (error_after 24h)</span></td></tr>
+          <tr><td class="mono">src_product_usage_events</td><td>Source</td><td class="badge">n/a</td><td>&mdash;</td><td><span class="test-err">freshness (error_after 24h)</span></td></tr>
+          <tr><td class="mono">stg_google_ads / stg_linkedin_ads / stg_display_network</td><td>Staging</td><td class="badge">view</td><td>&mdash;</td><td><span class="test-err">not_null + unique: campaign_id+date</span></td></tr>
+          <tr><td class="mono">stg_crm_pipeline</td><td>Staging</td><td class="badge">view</td><td>&mdash;</td><td><span class="test-err">unique: lead_id</span> &middot; <span class="test-err">accepted_values: lifecycle_stage</span></td></tr>
+          <tr><td class="mono">stg_product_usage_events</td><td>Staging</td><td class="badge">view</td><td>&mdash;</td><td><span class="test-err">accepted_values: event_type</span> &middot; <span class="test-warn">plan_tier retained raw, not trusted downstream</span></td></tr>
+          <tr><td class="mono">int_paid_ads_unioned</td><td>Intermediate</td><td class="badge">ephemeral</td><td>&mdash;</td><td>&mdash;</td></tr>
+          <tr><td class="mono">int_crm_identity_resolved</td><td>Intermediate</td><td class="badge">ephemeral</td><td>&mdash;</td><td><span class="test-err">company_name not_null</span> &middot; <span class="test-err">created_at &le; opportunity_created_at</span></td></tr>
+          <tr><td class="mono">int_trial_windows</td><td>Intermediate</td><td class="badge">ephemeral</td><td>&mdash;</td><td><span class="test-err">trial_end_at &ge; trial_start_at</span></td></tr>
+          <tr><td class="mono">int_crm_channel_attribution</td><td>Intermediate</td><td class="badge">ephemeral</td><td>&mdash;</td><td><span class="test-err">relationships: campaign_id &isin; paid_ads</span> &middot; <span class="test-warn">opportunity_created_at &le; close_date (6 known exceptions)</span></td></tr>
+          <tr><td class="mono">int_usage_events_in_trial</td><td>Intermediate</td><td class="badge">ephemeral</td><td>&mdash;</td><td><span class="test-err">relationships: company_id &isin; crm</span></td></tr>
+          <tr><td class="mono">int_company_plan_tier_resolved</td><td>Intermediate</td><td class="badge">ephemeral</td><td>&mdash;</td><td><span class="test-warn">same company+day &rarr; 1 distinct plan_tier (monitors noise)</span></td></tr>
+          <tr><td class="mono">snap_crm_lead_lifecycle</td><td>Snapshot</td><td class="badge">snapshot (SCD2)</td><td>&mdash;</td><td><span class="test-err">unique: lead_id + dbt_valid_from</span></td></tr>
+          <tr><td class="mono">dim_companies <span class="badge">sk_company</span></td><td>Dimension</td><td class="badge">table</td><td>&mdash;</td><td><span class="test-err">unique + not_null: sk_company</span></td></tr>
+          <tr><td class="mono">dim_campaigns <span class="badge">sk_campaign</span></td><td>Dimension</td><td class="badge">table</td><td>&mdash;</td><td><span class="test-err">unique + not_null: sk_campaign</span> &middot; <span class="test-warn">relationships to fct_ad_spend_daily</span></td></tr>
+          <tr><td class="mono">dim_users <span class="badge">sk_user</span></td><td>Dimension</td><td class="badge">table (accumulating snapshot)</td><td>&mdash;</td><td><span class="test-err">unique + not_null: sk_user</span></td></tr>
+          <tr><td class="mono">dim_leads <span class="badge">sk_lead</span></td><td>Dimension</td><td class="badge">table (built on snapshot)</td><td>&mdash;</td><td><span class="test-err">accepted_values: lifecycle_stage</span></td></tr>
+          <tr><td class="mono">fct_leads</td><td>Fact</td><td class="badge">incremental</td><td class="badge">merge</td><td><span class="test-err">unique + not_null: lead_id</span></td></tr>
+          <tr><td class="mono">fct_usage_events</td><td>Fact</td><td class="badge">incremental</td><td class="badge">append</td><td><span class="test-err">not_null: event_time, user_id</span></td></tr>
+          <tr><td class="mono">fct_ad_spend_daily</td><td>Fact</td><td class="badge">incremental</td><td class="badge">merge</td><td><span class="test-err">unique: campaign_id + date</span></td></tr>
+          <tr><td class="mono">fct_company_seats_daily</td><td>Fact</td><td class="badge">incremental</td><td class="badge">insert_overwrite</td><td><span class="test-warn">seats_used volatility monitored, not enforced</span></td></tr>
+          <tr><td class="mono">mart_growth_metrics_by_channel</td><td>Mart</td><td class="badge">table</td><td>&mdash;</td><td><span class="test-warn">CAC/CPL/LTV:CAC directional &mdash; small-n caveat</span></td></tr>
+          <tr><td class="mono">mart_cohort_retention</td><td>Mart</td><td class="badge">table</td><td>&mdash;</td><td><span class="test-warn">2025 Q4 / 2026 Q1 cohorts excluded &mdash; censored</span></td></tr>
+          <tr><td class="mono">mart_dormant_scoring</td><td>Mart</td><td class="badge">table</td><td>&mdash;</td><td><span class="test-warn">propensity score not predictive &mdash; documented, not hidden</span></td></tr>
+          <tr><td class="mono">MetricFlow semantic models</td><td>Semantic</td><td class="badge">query-time (dbt-core compile / dbt Cloud serve)</td><td>&mdash;</td><td>&mdash;</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="notes">
+    <h2>Design Notes</h2>
+    <div class="notes-grid">
+      <div class="note-card">
+        <h3><span class="note-num">01</span> Surrogate keys</h3>
+        <p>Generated at the dimension layer via <code>dbt_utils.generate_surrogate_key()</code>, matching the book's own end-to-end example. Facts join dimensions on <code>sk_*</code>, not natural keys like <code>company_name</code> &mdash; insulating joins from the exact identity-resolution fragility Section&nbsp;3 uncovered.</p>
+      </div>
+      <div class="note-card">
+        <h3><span class="note-num">02</span> Snapshot sources from staging, not a cleaned model</h3>
+        <p><code>snap_crm_lead_lifecycle</code> snapshots <code>stg_crm_pipeline</code> directly &mdash; <code>lead_id</code> is already a clean natural key, no dedup needed at that grain. <code>dim_leads</code> then joins the snapshot's output to <code>int_crm_identity_resolved</code> to attach <code>company_name</code>, keeping identity-resolution logic downstream of the snapshot as the book's pattern expects.</p>
+      </div>
+      <div class="note-card">
+        <h3><span class="note-num">03</span> Mart and semantic layer, deliberately both</h3>
+        <p><code>mart_growth_metrics_by_channel</code> is the working, demoable v1. MetricFlow definitions sit alongside it as the governed next step &mdash; centralizing metric logic for every BI tool, once the hosted Semantic Layer (dbt Cloud) is in play rather than dbt-core alone.</p>
+      </div>
+      <div class="note-card">
+        <h3><span class="note-num">04</span> plan_tier: noisy signal, resolved not discarded</h3>
+        <p>Raw <code>plan_tier</code>/<code>seats_used</code> stay in staging. <code>int_company_plan_tier_resolved</code> mode-resolves a single company-level value with a confidence score, exposed on <code>dim_companies</code> &mdash; not trusted at the event grain, not thrown away either.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    Sources: crm_pipeline.csv &middot; paid_ads.csv &middot; product_usage_events.csv (fictional case dataset).
+    Reviewed against <em>Analytics Engineering with SQL and dbt</em> (Machado &amp; Russa) via NotebookLM, chapters 4&ndash;6.
+  </footer>
+
+</div>
+<script>
+  mermaid.initialize({ startOnLoad: true });
+</script>
+</body>
+</html>
