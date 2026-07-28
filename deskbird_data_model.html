@@ -292,8 +292,7 @@
     <p class="lede">
       Full lineage for the five growth metrics: 5 raw sources, staging, intermediate transforms,
       one SCD2 snapshot, dimensional + fact marts, and a semantic-layer path alongside the
-      physical mart. Reviewed against <em>Analytics Engineering with SQL and dbt</em>
-      (Machado &amp; Russa) for materialization, testing, and naming conventions.
+      physical mart, following standard dbt conventions for materialization, testing, and naming.
     </p>
     <div class="meta-chips">
       <span class="chip">5 sources</span>
@@ -525,11 +524,11 @@ graph TD
     <div class="notes-grid">
       <div class="note-card">
         <h3><span class="note-num">01</span> Surrogate keys</h3>
-        <p>Generated at the dimension layer via <code>dbt_utils.generate_surrogate_key()</code>, matching the book's own end-to-end example. Facts join dimensions on <code>sk_*</code>, not natural keys like <code>company_name</code> &mdash; insulating joins from the exact identity-resolution fragility Section&nbsp;3 uncovered.</p>
+        <p>Generated at the dimension layer via <code>dbt_utils.generate_surrogate_key()</code>. Facts join dimensions on <code>sk_*</code>, not natural keys like <code>company_name</code> &mdash; insulating joins from the exact identity-resolution fragility Section&nbsp;3 uncovered.</p>
       </div>
       <div class="note-card">
         <h3><span class="note-num">02</span> Snapshot sources from staging, not a cleaned model</h3>
-        <p><code>snap_crm_lead_lifecycle</code> snapshots <code>stg_crm_pipeline</code> directly &mdash; <code>lead_id</code> is already a clean natural key, no dedup needed at that grain. <code>dim_leads</code> then joins the snapshot's output to <code>int_crm_identity_resolved</code> to attach <code>company_name</code>, keeping identity-resolution logic downstream of the snapshot as the book's pattern expects.</p>
+        <p><code>snap_crm_lead_lifecycle</code> snapshots <code>stg_crm_pipeline</code> directly &mdash; <code>lead_id</code> is already a clean natural key, no dedup needed at that grain. <code>dim_leads</code> then joins the snapshot's output to <code>int_crm_identity_resolved</code> to attach <code>company_name</code>, keeping identity-resolution logic downstream of the snapshot.</p>
       </div>
       <div class="note-card">
         <h3><span class="note-num">03</span> Mart and semantic layer, deliberately both</h3>
@@ -544,7 +543,6 @@ graph TD
 
   <footer>
     Sources: crm_pipeline.csv &middot; paid_ads.csv &middot; product_usage_events.csv (fictional case dataset).
-    Reviewed against <em>Analytics Engineering with SQL and dbt</em> (Machado &amp; Russa) via NotebookLM, chapters 4&ndash;6.
   </footer>
 
 </div>
