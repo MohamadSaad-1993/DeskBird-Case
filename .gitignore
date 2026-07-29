@@ -1,8 +1,3 @@
-google_slides_mcp_client_secret.json
-slides_token.pickle
-*.pickle
-scratch_*.py
-_scratch_*
 .ipynb_checkpoints/
 __pycache__/
 *.pyc
